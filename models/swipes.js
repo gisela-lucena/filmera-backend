@@ -1,3 +1,0 @@
-// movieID
-// userID
-// roomID

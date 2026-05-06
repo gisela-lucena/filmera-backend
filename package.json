@@ -14,7 +14,7 @@
     "url": "git+https://github.com/gisela-lucena/filmera-backend.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Gisela Elia",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/gisela-lucena/filmera-backend/issues"
@@ -24,6 +24,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mongodb": "^7.2.0",
-    "mongoose": "^9.6.1"
+    "mongoose": "^9.6.1",
+    "nodemon": "^3.1.14"
   }
 }
