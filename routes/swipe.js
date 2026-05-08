@@ -1,8 +1,8 @@
 import express from "express";
 import { createSwipe } from "../controllers/swipe.js";
 
-const router = express.Router();
+const swipeRouter = express.Router();
 
 router.post("/", createSwipe);
 
-export default router;
+export default swipeRouter;
