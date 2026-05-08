@@ -1,7 +1,6 @@
 import { Router } from "express";
 import {
   getCurrentUser,
-  getUsers,
   getUserById,
   patchUser,
 } from "../controllers/users.js";
@@ -22,7 +21,6 @@ const validateUserId = celebrate({
 
 const userRouter = Router();
 
-userRouter.get("/", getUsers);
 userRouter.get("/me", getCurrentUser);
 userRouter.get("/:userId", validateUserId, getUserById);
 userRouter.patch("/me", validateUpdateProfile, patchUser);

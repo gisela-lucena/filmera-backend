@@ -1,20 +1,28 @@
 import express from "express";
 import mongoose from "mongoose";
 import "dotenv/config";
-import swipeRouter from "./routes/swipeRoutes.js";
-import userRouter from "./routes/userRoutes.js";
-import roomRouter from "./routes/roomRoutes.js";
-// import auth from "./middleware/auth.js";
+import swipeRouter from "./routes/swipe.js";
+import userRouter from "./routes/users.js";
+import roomRouter from "./routes/room.js";
+import auth from "./middlewares/auth.js";
+import dotenv from "dotenv";
+import cors from "cors";
+import { logRequests } from "./middlewares/requestLogger.js";
+
+dotenv.config();
+console.log("Ambiente:", process.env.NODE_ENV);
 
 const app = express();
+app.use(cors());
 
 app.use(express.json());
+app.use(logRequests);
 
-app.use("/swipes", auth, swipeRouter);
+app.use("/swipe", swipeRouter);
 app.use("/users", auth, userRouter);
-app.use("/rooms", auth, roomRouter);
+app.use("/room", auth, roomRouter);
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 mongoose
   .connect(process.env.MONGODB_URI)

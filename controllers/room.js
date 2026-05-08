@@ -1,6 +1,10 @@
 import Room from "../models/room.js";
 import Swipe from "../models/swipe.js";
 
+// export const createRoom = async (req, res, next) => {
+
+// export const joinRoom = async (req, res, next) => {
+
 export async function getAvailableMovies(req, res, next) {
   try {
     const { roomId } = req.params;

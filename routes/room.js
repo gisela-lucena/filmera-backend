@@ -1,8 +1,8 @@
-import express from "express";
+import { Router } from "express";
 import { getAvailableMovies } from "../controllers/room.js";
 
-const roomRouter = express.Router();
+const roomRouter = Router();
 
-router.get("/", getAvailableMovies);
+roomRouter.get("/room", getAvailableMovies);
 
 export default roomRouter;

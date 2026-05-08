@@ -1,4 +1,4 @@
-import User from '../models/User.js';
+import User from "../models/users.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -63,15 +63,6 @@ export const getCurrentUser = async (req, res, next) => {
   }
 };
 
-export const getUsers = async (req, res, next) => {
-  try {
-    const users = await User.find({});
-    res.json(users);
-  } catch (err) {
-    next(err);
-  }
-};
-
 export const getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
@@ -99,4 +90,3 @@ export const patchUser = async (req, res, next) => {
     next(err);
   }
 };
-
