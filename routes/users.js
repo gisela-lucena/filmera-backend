@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  getUsers,
   getCurrentUser,
   getUserById,
   patchUser,
@@ -21,6 +22,7 @@ const validateUserId = celebrate({
 
 const userRouter = Router();
 
+userRouter.get("/", getUsers);
 userRouter.get("/me", getCurrentUser);
 userRouter.get("/:userId", validateUserId, getUserById);
 userRouter.patch("/me", validateUpdateProfile, patchUser);

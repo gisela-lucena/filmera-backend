@@ -4,25 +4,52 @@ import "dotenv/config";
 import swipeRouter from "./routes/swipe.js";
 import userRouter from "./routes/users.js";
 import roomRouter from "./routes/room.js";
+import moviesRouter from "./routes/movies.js";
 import auth from "./middlewares/auth.js";
 import dotenv from "dotenv";
 import cors from "cors";
-import { logRequests } from "./middlewares/requestLogger.js";
+import { createUser, userLogin } from "./controllers/users.js";
+import { celebrate, Joi, errors } from "celebrate";
 
 dotenv.config();
 console.log("Ambiente:", process.env.NODE_ENV);
 
 const app = express();
-app.use(cors());
+const PORT = process.env.PORT || 3000;
+const { MONGODB_URI } = process.env;
+const allowedOrigins = ["http://localhost:3000"];
 
+const validateSigninRequest = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8).max(70),
+  }),
+});
+
+const validateSignupRequest = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8).max(70),
+  }),
+});
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
 app.use(express.json());
-app.use(logRequests);
 
-app.use("/swipe", swipeRouter);
+app.post("/signin", validateSigninRequest, userLogin);
+app.post("/signup", validateSignupRequest, createUser);
+app.use("/swipe", auth, swipeRouter);
 app.use("/users", auth, userRouter);
 app.use("/room", auth, roomRouter);
+app.use("/movies", auth, moviesRouter);
 
-const PORT = process.env.PORT || 3000;
+app.use(errors());
 
 mongoose
   .connect(process.env.MONGODB_URI)

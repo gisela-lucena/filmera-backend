@@ -3,6 +3,6 @@ import { createSwipe } from "../controllers/swipe.js";
 
 const swipeRouter = Router();
 
-swipeRouter.post("/swipe", createSwipe);
+swipeRouter.post("/", createSwipe);
 
 export default swipeRouter;

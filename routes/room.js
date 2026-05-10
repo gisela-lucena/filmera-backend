@@ -7,8 +7,8 @@ import {
 
 const roomRouter = Router();
 
-roomRouter.post("/room", createRoom);
-roomRouter.post("/room/:roomId/join", joinRoom);
-roomRouter.get("/room", getAvailableMovies);
+roomRouter.post("/", createRoom);
+roomRouter.post("/:roomId/join", joinRoom);
+roomRouter.get("/", getAvailableMovies);
 
 export default roomRouter;

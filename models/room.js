@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import validator from "validator";
 
 const movieSchema = new mongoose.Schema(
   {

@@ -63,6 +63,7 @@ export async function getAvailableMovies(req, res, next) {
 
     const dislikedSwipes = await Swipe.find({
       room: roomId,
+      user: userId,
       liked: false,
     });
 
