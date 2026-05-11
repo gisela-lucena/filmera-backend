@@ -17,7 +17,12 @@ console.log("Ambiente:", process.env.NODE_ENV);
 const app = express();
 const PORT = process.env.PORT || 3000;
 const { MONGODB_URI } = process.env;
-const allowedOrigins = ["http://localhost:3000"];
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://filmera-frontend.vercel.app/",
+  "https://filmera.us/",
+];
 
 const validateSigninRequest = celebrate({
   body: Joi.object().keys({
