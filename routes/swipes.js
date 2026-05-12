@@ -1,8 +1,17 @@
 import { Router } from "express";
 import { createSwipe } from "../controllers/swipe.js";
+import { celebrate, Joi } from "celebrate";
 
 const swipeRouter = Router();
 
-swipeRouter.post("/", createSwipe);
+const validateCreateSwipe = celebrate({
+  body: Joi.object().keys({
+    roomId: Joi.string().hex().length(24).required(),
+    movieId: Joi.number().required(),
+    liked: Joi.boolean().required(),
+  }),
+});
+
+swipeRouter.post("/", validateCreateSwipe, createSwipe);
 
 export default swipeRouter;
