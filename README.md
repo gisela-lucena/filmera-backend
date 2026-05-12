@@ -1,8 +1,14 @@
-FILMERA Backend API
+#  FILMERA Backend API 🎬
 
-📖 About the Project
+Movie matching platform where friends swipe movies together and get matches in real time.
 
-FILMERA is a full-stack movie matching application where users can create shared rooms, swipe on movies together, and discover matches based on mutual likes.
+## Live Demo
+
+🔗 https://filmera.us/
+
+## Backend API
+
+🔗 https://filmera-backend.onrender.com
 
 This repository contains the backend API responsible for:
 
@@ -139,6 +145,12 @@ Utilities
 External API
 
 - TMDB API
+
+Deployment
+
+- Vercel (Frontend)
+- Render (Backend)
+- MongoDB Atlas
 
 🧪 API Testing
 
