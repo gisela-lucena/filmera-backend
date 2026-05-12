@@ -49,7 +49,7 @@ app.post("/signup", validateSignupRequest, createUser);
 app.use("/swipes", auth, swipeRouter);
 app.use("/users", auth, userRouter);
 app.use("/rooms", auth, roomRouter);
-app.use("/movies", auth, moviesRouter);
+app.use("/movies", moviesRouter);
 
 app.use(errors());
 
