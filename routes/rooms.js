@@ -9,6 +9,6 @@ const roomRouter = Router();
 
 roomRouter.post("/", createRoom);
 roomRouter.post("/:roomId/join", joinRoom);
-roomRouter.get("/", getAvailableMovies);
+roomRouter.get("/:roomId", getAvailableMovies);
 
 export default roomRouter;

@@ -8,7 +8,7 @@ export async function createSwipe(req, res, next) {
 
     const swipe = await Swipe.findOneAndUpdate(
       { room: roomId, user: userId, movieId },
-      { liked },
+      { room: roomId, user: userId, movieId, liked },
       { new: true, upsert: true },
     );
 
@@ -25,16 +25,19 @@ export async function createSwipe(req, res, next) {
 
       const isMatch = room.participants.every((participantId) =>
         likes.some(
-          (swipe) => swipe.user.toString() === participantId.toString(),
+          (swipeItem) => swipeItem.user.toString() === participantId.toString(),
         ),
       );
 
       if (isMatch) {
-        matchedMovie = room.movies.find((movie) => movie.tmdbId === movieId);
-
-        room.matchedMovie = matchedMovie;
-        room.status = "matched";
-        await room.save();
+        matchedMovie = room.movies.find(
+          (movie) => movie.tmdbId.toString() === movieId.toString(),
+        );
+        if (matchedMovie) {
+          room.matchedMovie = matchedMovie;
+          room.status = "matched";
+          await room.save();
+        }
       }
     }
 

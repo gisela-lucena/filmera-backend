@@ -59,21 +59,30 @@ export const joinRoom = async (req, res, next) => {
 export async function getAvailableMovies(req, res, next) {
   try {
     const { roomId } = req.params;
+    const userId = req.user._id;
+
     const room = await Room.findById(roomId).orFail();
 
-    const dislikedSwipes = await Swipe.find({
-      room: roomId,
-      user: userId,
-      liked: false,
-    });
+    const swipes = await Swipe.find({ room: roomId });
 
-    const blockedMovieIds = dislikedSwipes.map((swipe) => swipe.movieId);
+    const moviesSwipedByCurrentUser = swipes.filter((swipe) =>
+      swipe.user.toString() === userId.toString())
+      .map((swipe) => swipe.movieId.toString());
+
+    const dislikedMovies = swipes.filter((swipe) =>
+      swipe.liked === false)
+      .map((swipe) => swipe.movieId.toString());
+
+    const blockedMovieIds = new Set([
+      ...moviesSwipedByCurrentUser,
+      ...dislikedMovies,
+    ]);
 
     const availableMovies = room.movies.filter(
-      (movie) => !blockedMovieIds.includes(movie.tmdbId),
+      (movie) => !blockedMovieIds.has(movie.tmdbId.toString()),
     );
 
-    res.send(availableMovies);
+    res.send({ movies: availableMovies });
   } catch (err) {
     next(err);
   }

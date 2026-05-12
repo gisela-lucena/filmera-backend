@@ -1,3 +1,6 @@
+import Room from "../models/room.js";
+import Swipe from "../models/swipe.js";
+
 export const getMovies = async (req, res, next) => {
   try {
     const { genres, year, sort = "popularity.desc" } = req.query;
@@ -52,3 +55,35 @@ export const getMovies = async (req, res, next) => {
     next(err);
   }
 };
+
+export async function getAvailableMovies(req, res, next) {
+  try {
+    const { roomId } = req.params;
+    const userId = req.user._id;
+
+    const room = await Room.findById(roomId).orFail();
+
+    const swipes = await Swipe.find({ room: roomId });
+
+    const moviesSwipedByCurrentUser = swipes
+      .filter((swipe) => swipe.user.toString() === userId.toString())
+      .map((swipe) => swipe.movieId.toString());
+
+    const dislikedMovies = swipes
+      .filter((swipe) => swipe.liked === false)
+      .map((swipe) => swipe.movieId.toString());
+
+    const unavailableMovieIds = new Set([
+      ...moviesSwipedByCurrentUser,
+      ...dislikedMovies,
+    ]);
+
+    const availableMovies = room.movies.filter(
+      (movie) => !unavailableMovieIds.has(movie.tmdbId.toString()),
+    );
+
+    res.send({ movies: availableMovies });
+  } catch (err) {
+    next(err);
+  }
+}

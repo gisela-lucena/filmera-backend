@@ -1,27 +1,24 @@
 import express from "express";
 import mongoose from "mongoose";
 import "dotenv/config";
-import swipeRouter from "./routes/swipe.js";
+import swipeRouter from "./routes/swipes.js";
 import userRouter from "./routes/users.js";
-import roomRouter from "./routes/room.js";
+import roomRouter from "./routes/rooms.js";
 import moviesRouter from "./routes/movies.js";
 import auth from "./middlewares/auth.js";
-import dotenv from "dotenv";
 import cors from "cors";
 import { createUser, userLogin } from "./controllers/users.js";
 import { celebrate, Joi, errors } from "celebrate";
 
-dotenv.config();
 console.log("Ambiente:", process.env.NODE_ENV);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const { MONGODB_URI } = process.env;
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://filmera-frontend.vercel.app/",
-  "https://filmera.us/",
+  "https://filmera-frontend.vercel.app",
+  "https://filmera.us",
 ];
 
 const validateSigninRequest = celebrate({
@@ -49,9 +46,9 @@ app.use(express.json());
 
 app.post("/signin", validateSigninRequest, userLogin);
 app.post("/signup", validateSignupRequest, createUser);
-app.use("/swipe", auth, swipeRouter);
+app.use("/swipes", auth, swipeRouter);
 app.use("/users", auth, userRouter);
-app.use("/room", auth, roomRouter);
+app.use("/rooms", auth, roomRouter);
 app.use("/movies", auth, moviesRouter);
 
 app.use(errors());
