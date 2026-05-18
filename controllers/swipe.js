@@ -3,22 +3,25 @@ import Room from "../models/room.js";
 
 export async function createSwipe(req, res, next) {
   try {
-    const { roomId, movieId, liked } = req.body;
+    const { roomCode, movieId, liked } = req.body;
     const userId = req.user._id;
 
     const swipe = await Swipe.findOneAndUpdate(
-      { room: roomId, user: userId, movieId },
-      { room: roomId, user: userId, movieId, liked },
+      { room: roomCode, user: userId, movieId },
+      { room: roomCode, user: userId, movieId, liked },
       { new: true, upsert: true },
     );
 
-    const room = await Room.findById(roomId).orFail();
+    const room = await Room.findOne({ code: roomCode });
+    if (!room) {
+      return res.status(404).send({ message: "Room not found" });
+    }
 
     let matchedMovie = null;
 
     if (liked) {
       const likes = await Swipe.find({
-        room: roomId,
+        room: roomCode,
         movieId,
         liked: true,
       });
@@ -43,8 +46,7 @@ export async function createSwipe(req, res, next) {
 
     res.send({
       swipe,
-      matched: Boolean(matchedMovie),
-      matchedMovie,
+      match: matchedMovie,
     });
   } catch (err) {
     next(err);

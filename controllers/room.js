@@ -3,11 +3,13 @@ import Swipe from "../models/swipe.js";
 
 export const createRoom = async (req, res, next) => {
   try {
-    const { code, movies, filters } = req.body;
+    const { code, movies = [], filters } = req.body;
     const host = req.user._id;
+    const roomCode =
+      code || Math.random().toString(36).slice(2, 8).toUpperCase();
 
     const room = await Room.create({
-      code,
+      code: roomCode,
       host,
       participants: [host],
       movies,
@@ -26,22 +28,22 @@ export const createRoom = async (req, res, next) => {
 
 export const joinRoom = async (req, res, next) => {
   try {
-    const { roomId } = req.params;
+    const { roomCode } = req.params;
     const userId = req.user._id;
 
-    const room = await Room.findById(roomId).orFail();
+    const room = await Room.findOne({ code: roomCode });
+    if (!room) {
+      return res.status(404).json({ message: "Sala não encontrada" });
+    }
 
     const alreadyInRoom = room.participants.some(
       (participant) => participant.toString() === userId.toString(),
     );
 
     if (alreadyInRoom) {
-      return res.status(400).json({
-        message: "Usuário já está na sala",
-      });
+      room.participants.push(userId);
+      await room.save();
     }
-    room.participants.push(userId);
-    await room.save();
 
     return res.json({
       message: "Entrou na sala com sucesso",
@@ -58,19 +60,19 @@ export const joinRoom = async (req, res, next) => {
 
 export async function getAvailableMovies(req, res, next) {
   try {
-    const { roomId } = req.params;
+    const { roomCode } = req.params;
     const userId = req.user._id;
 
-    const room = await Room.findById(roomId).orFail();
+    const room = await Room.findOne({ code: roomCode }).orFail();
 
-    const swipes = await Swipe.find({ room: roomId });
+    const swipes = await Swipe.find({ room: roomCode });
 
-    const moviesSwipedByCurrentUser = swipes.filter((swipe) =>
-      swipe.user.toString() === userId.toString())
+    const moviesSwipedByCurrentUser = swipes
+      .filter((swipe) => swipe.user.toString() === userId.toString())
       .map((swipe) => swipe.movieId.toString());
 
-    const dislikedMovies = swipes.filter((swipe) =>
-      swipe.liked === false)
+    const dislikedMovies = swipes
+      .filter((swipe) => swipe.liked === false)
       .map((swipe) => swipe.movieId.toString());
 
     const blockedMovieIds = new Set([
@@ -87,3 +89,40 @@ export async function getAvailableMovies(req, res, next) {
     next(err);
   }
 }
+
+export const addMovieToRoom = async (req, res, next) => {
+  try {
+    const { roomCode } = req.params;
+    const { movie } = req.body;
+
+    const room = await Room.findOne({ code: roomCode });
+
+    if (!room) {
+      return res.status(404).json({ message: "Sala não encontrada" });
+    }
+
+    const alreadyExists = room.movies.some(
+      (item) => item.tmdbId.toString() === movie.id?.toString(),
+    );
+
+    if (!alreadyExists) {
+      room.movies.push({
+        tmdbId: movie.id,
+        title: movie.title,
+        year: movie.year,
+        rating: movie.rating,
+        overview: movie.overview,
+        poster: movie.poster,
+      });
+
+      await room.save();
+    }
+
+    return res.status(201).json({
+      message: "Filme adicionado à sala",
+      room,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

@@ -63,8 +63,8 @@ Features
 
 Room Endpoints:
 POST /room
-POST /room/:roomId/join
-GET /room/:roomId/movies
+POST /room/:roomCode/join
+GET /room/:roomCode/movies
 
 🍿 Swipe System Foundation
 

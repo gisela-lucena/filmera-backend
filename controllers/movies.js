@@ -58,12 +58,12 @@ export const getMovies = async (req, res, next) => {
 
 export async function getAvailableMovies(req, res, next) {
   try {
-    const { roomId } = req.params;
+    const { roomCode } = req.params;
     const userId = req.user._id;
 
-    const room = await Room.findById(roomId).orFail();
+    const room = await Room.findOne({ code: roomCode }).orFail();
 
-    const swipes = await Swipe.find({ room: roomId });
+    const swipes = await Swipe.find({ room: roomCode });
 
     const moviesSwipedByCurrentUser = swipes
       .filter((swipe) => swipe.user.toString() === userId.toString())

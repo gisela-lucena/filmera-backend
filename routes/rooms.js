@@ -3,20 +3,21 @@ import {
   createRoom,
   joinRoom,
   getAvailableMovies,
+  addMovieToRoom,
 } from "../controllers/room.js";
 import { celebrate, Joi } from "celebrate";
 
 const roomRouter = Router();
 
-const validateRoomId = celebrate({
+const validateRoomCode = celebrate({
   params: Joi.object().keys({
-    roomId: Joi.string().hex().length(24).required(),
+    roomCode: Joi.string().min(4).max(20).required(),
   }),
 });
 
 const validateCreateRoom = celebrate({
   body: Joi.object().keys({
-    code: Joi.string().min(4).max(20).required(),
+    roomCode: Joi.string().min(4).max(20).optional(),
     movies: Joi.array()
       .items(
         Joi.object().keys({
@@ -28,13 +29,14 @@ const validateCreateRoom = celebrate({
           poster: Joi.string().uri().allow(""),
         }),
       )
-      .required(),
+      .default([]),
     filters: Joi.object().optional(),
   }),
 });
 
 roomRouter.post("/", validateCreateRoom, createRoom);
-roomRouter.post("/:roomId/join", validateRoomId, joinRoom);
-roomRouter.get("/:roomId", validateRoomId, getAvailableMovies);
+roomRouter.post("/:roomCode/join", validateRoomCode, joinRoom);
+roomRouter.post("/:roomCode/movies", addMovieToRoom);
+roomRouter.get("/:roomCode", validateRoomCode, getAvailableMovies);
 
 export default roomRouter;
