@@ -19,7 +19,13 @@ export const createRoom = async (req, res, next) => {
     });
     res.status(201).json({
       message: "Sala criada com sucesso",
-      room: { code: room.code, _id: room._id },
+      room: {
+        code: room.code,
+        _id: room._id,
+        participants: room.participants,
+        movies: room.movies,
+        status: room.status,
+      },
     });
   } catch (err) {
     next(err);
@@ -40,7 +46,7 @@ export const joinRoom = async (req, res, next) => {
       (participant) => participant.toString() === userId.toString(),
     );
 
-    if (alreadyInRoom) {
+    if (!alreadyInRoom) {
       room.participants.push(userId);
       await room.save();
     }
