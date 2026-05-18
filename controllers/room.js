@@ -57,6 +57,8 @@ export const joinRoom = async (req, res, next) => {
         _id: room._id,
         code: room.code,
         participants: room.participants,
+        movies: room.movies,
+        status: room.status,
       },
     });
   } catch (err) {
