@@ -3,8 +3,7 @@ import mongoose from "mongoose";
 const swipeSchema = new mongoose.Schema(
   {
     room: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "room",
+      type: String,
       required: true,
     },
 
