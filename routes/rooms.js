@@ -5,6 +5,7 @@ import {
   getAvailableMovies,
   addMovieToRoom,
   getRoom,
+  clearMatch,
 } from "../controllers/room.js";
 import { celebrate, Joi } from "celebrate";
 
@@ -44,5 +45,6 @@ roomRouter.get(
   validateRoomCode,
   getAvailableMovies,
 );
+roomRouter.patch("/:roomCode/match/clear", validateRoomCode, clearMatch);
 
 export default roomRouter;

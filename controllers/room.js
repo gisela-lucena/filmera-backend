@@ -159,3 +159,26 @@ export const getRoom = async (req, res, next) => {
     next(err);
   }
 };
+
+export const clearMatch = async (req, res, next) => {
+  try {
+    const { roomCode } = req.params;
+    const room = await Room.findOne({ code: roomCode });
+
+    if (!room) {
+      return res.status(404).json({ message: "Sala não encontrada" });
+    }
+
+    room.matchedMovie = null;
+    room.status = "swiping";
+
+    await room.save();
+
+    return res.json({
+      message: "Match removido",
+      room,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
