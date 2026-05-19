@@ -18,7 +18,7 @@ const validateRoomCode = celebrate({
 
 const validateCreateRoom = celebrate({
   body: Joi.object().keys({
-    roomCode: Joi.string().min(4).max(20).optional(),
+    code: Joi.string().min(4).max(20).optional(),
     movies: Joi.array()
       .items(
         Joi.object().keys({
@@ -38,6 +38,11 @@ const validateCreateRoom = celebrate({
 roomRouter.post("/", validateCreateRoom, createRoom);
 roomRouter.post("/:roomCode/join", validateRoomCode, joinRoom);
 roomRouter.post("/:roomCode/movies", addMovieToRoom);
-roomRouter.get("/:roomCode", validateRoomCode, getAvailableMovies, getRoom);
+roomRouter.get("/:roomCode", validateRoomCode, getRoom);
+roomRouter.get(
+  "/:roomCode/available-movies",
+  validateRoomCode,
+  getAvailableMovies,
+);
 
 export default roomRouter;

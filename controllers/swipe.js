@@ -19,7 +19,7 @@ export async function createSwipe(req, res, next) {
 
     let matchedMovie = null;
 
-    if (liked) {
+    if (liked && room.participants.length >= 2) {
       const likes = await Swipe.find({
         room: roomCode,
         movieId,
