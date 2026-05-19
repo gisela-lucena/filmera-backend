@@ -4,6 +4,7 @@ import {
   joinRoom,
   getAvailableMovies,
   addMovieToRoom,
+  getRoom,
 } from "../controllers/room.js";
 import { celebrate, Joi } from "celebrate";
 
@@ -37,6 +38,6 @@ const validateCreateRoom = celebrate({
 roomRouter.post("/", validateCreateRoom, createRoom);
 roomRouter.post("/:roomCode/join", validateRoomCode, joinRoom);
 roomRouter.post("/:roomCode/movies", addMovieToRoom);
-roomRouter.get("/:roomCode", validateRoomCode, getAvailableMovies);
+roomRouter.get("/:roomCode", validateRoomCode, getAvailableMovies, getRoom);
 
 export default roomRouter;

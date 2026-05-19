@@ -134,3 +134,28 @@ export const addMovieToRoom = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getRoom = async (req, res, next) => {
+  try {
+    const { roomCode } = req.params;
+
+    const room = await Room.findOne({ code: roomCode });
+
+    if (!room) {
+      return res.status(404).json({ message: "Sala não encontrada" });
+    }
+
+    return res.json({
+      room: {
+        _id: room._id,
+        code: room.code,
+        participants: room.participants,
+        movies: room.movies,
+        status: room.status,
+        matchedMovie: room.matchedMovie,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};

@@ -9,7 +9,7 @@ export async function createSwipe(req, res, next) {
     const swipe = await Swipe.findOneAndUpdate(
       { room: roomCode, user: userId, movieId },
       { room: roomCode, user: userId, movieId, liked },
-      { new: true, upsert: true },
+      { returnDocument: "after", upsert: true },
     );
 
     const room = await Room.findOne({ code: roomCode });
