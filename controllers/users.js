@@ -17,6 +17,11 @@ export const createUser = async (req, res, next) => {
       user: { email: user.email, _id: user._id },
     });
   } catch (err) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        message: "This email is already registered",
+      });
+    }
     next(err);
   }
 };
