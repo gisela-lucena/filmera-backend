@@ -48,6 +48,8 @@ const validateCreateRoom = celebrate({
             "vote_average.asc",
             "release_date.desc",
             "release_date.asc",
+            "primary_release_date.desc",
+            "primary_release_date.asc",
           )
           .default("popularity.desc"),
       })
