@@ -1,6 +1,10 @@
 const TMDB_DISCOVER_URL = "https://api.themoviedb.org/3/discover/movie";
 const TMDB_POSTER_BASE_URL = "https://image.tmdb.org/t/p/w500";
 const TMDB_PAGE_SIZE = 20;
+const DEFAULT_WATCH_REGION = process.env.TMDB_WATCH_REGION || "US";
+const DEFAULT_WATCH_MONETIZATION_TYPES = "flatrate|free|ads";
+
+const getToday = () => new Date().toISOString().slice(0, 10);
 
 const formatGenres = (genres) => {
   if (Array.isArray(genres)) {
@@ -24,6 +28,9 @@ export const fetchMoviesFromTmdb = async ({
   year,
   sort = "popularity.desc",
   limit = TMDB_PAGE_SIZE,
+  streamingOnly = true,
+  watchRegion = DEFAULT_WATCH_REGION,
+  watchMonetizationTypes = DEFAULT_WATCH_MONETIZATION_TYPES,
 } = {}) => {
   const pageCount = Math.ceil(limit / TMDB_PAGE_SIZE);
   const movieById = new Map();
@@ -44,6 +51,12 @@ export const fetchMoviesFromTmdb = async ({
 
     if (year && year !== "any") {
       params.append("primary_release_year", year);
+    }
+
+    if (streamingOnly) {
+      params.append("release_date.lte", getToday());
+      params.append("watch_region", watchRegion);
+      params.append("with_watch_monetization_types", watchMonetizationTypes);
     }
 
     const response = await fetch(`${TMDB_DISCOVER_URL}?${params.toString()}`, {
