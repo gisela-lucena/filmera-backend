@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createRoom,
+  updateRoomFilters,
   joinRoom,
   getAvailableMovies,
   addMovieToRoom,
@@ -57,7 +58,44 @@ const validateCreateRoom = celebrate({
   }),
 });
 
+const filtersSchema = Joi.object()
+  .keys({
+    genres: Joi.alternatives()
+      .try(Joi.array().items(Joi.number()), Joi.string().allow(""))
+      .default([]),
+    year: Joi.alternatives()
+      .try(Joi.string().valid("any"), Joi.string().length(4))
+      .default("any"),
+    sort: Joi.string()
+      .valid(
+        "popularity.desc",
+        "popularity.asc",
+        "vote_average.desc",
+        "vote_average.asc",
+        "release_date.desc",
+        "release_date.asc",
+        "primary_release_date.desc",
+        "primary_release_date.asc",
+      )
+      .default("popularity.desc"),
+  })
+  .required();
+
+const validateUpdateRoomFilters = celebrate({
+  params: Joi.object().keys({
+    roomCode: Joi.string().min(4).max(20).required(),
+  }),
+  body: Joi.object().keys({
+    filters: filtersSchema,
+  }),
+});
+
 roomRouter.post("/", validateCreateRoom, createRoom);
+roomRouter.patch(
+  "/:roomCode/filters",
+  validateUpdateRoomFilters,
+  updateRoomFilters,
+);
 roomRouter.post("/:roomCode/join", validateRoomCode, joinRoom);
 roomRouter.post("/:roomCode/movies", addMovieToRoom);
 roomRouter.get("/:roomCode", validateRoomCode, getRoom);

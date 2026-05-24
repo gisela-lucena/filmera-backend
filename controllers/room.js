@@ -66,6 +66,54 @@ export const createRoom = async (req, res, next) => {
   }
 };
 
+export const updateRoomFilters = async (req, res, next) => {
+  try {
+    const { roomCode } = req.params;
+    const { filters } = req.body;
+    const roomFilters = normalizeRoomFilters(filters);
+
+    const room = await Room.findOne({ code: roomCode });
+
+    if (!room) {
+      return res.status(404).json({ message: "Sala não encontrada" });
+    }
+
+    const roomMovies = await fetchMoviesFromTmdb({
+      ...roomFilters,
+      limit: ROOM_MOVIE_LIMIT,
+    });
+
+    room.filters = roomFilters;
+    room.movies = roomMovies;
+    room.matchedMovie = null;
+    room.status = "swiping";
+
+    await Swipe.deleteMany({ room: roomCode });
+    await room.save();
+
+    return res.json({
+      message: "Filtros atualizados com sucesso",
+      room: {
+        code: room.code,
+        _id: room._id,
+        participants: room.participants,
+        movies: room.movies,
+        filters: room.filters,
+        status: room.status,
+      },
+    });
+  } catch (err) {
+    if (err.tmdbError) {
+      return res.status(err.statusCode).json({
+        message: err.message,
+        tmdbError: err.tmdbError,
+      });
+    }
+
+    next(err);
+  }
+};
+
 export const joinRoom = async (req, res, next) => {
   try {
     const { roomCode } = req.params;
