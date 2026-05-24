@@ -32,7 +32,26 @@ const validateCreateRoom = celebrate({
         }),
       )
       .default([]),
-    filters: Joi.object().optional(),
+    filters: Joi.object()
+      .keys({
+        genres: Joi.alternatives()
+          .try(Joi.array().items(Joi.number()), Joi.string().allow(""))
+          .default([]),
+        year: Joi.alternatives()
+          .try(Joi.string().valid("any"), Joi.string().length(4))
+          .default("any"),
+        sort: Joi.string()
+          .valid(
+            "popularity.desc",
+            "popularity.asc",
+            "vote_average.desc",
+            "vote_average.asc",
+            "release_date.desc",
+            "release_date.asc",
+          )
+          .default("popularity.desc"),
+      })
+      .optional(),
   }),
 });
 

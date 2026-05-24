@@ -1,19 +1,46 @@
 import Room from "../models/room.js";
 import Swipe from "../models/swipe.js";
+import { fetchMoviesFromTmdb } from "../utils/tmdb.js";
+
+const ROOM_MOVIE_LIMIT = 100;
+
+const normalizeRoomFilters = (filters) => {
+  if (!filters) {
+    return filters;
+  }
+
+  const genres = Array.isArray(filters.genres)
+    ? filters.genres
+    : String(filters.genres || "")
+        .split(",")
+        .filter(Boolean)
+        .map(Number)
+        .filter(Number.isFinite);
+
+  return {
+    genres,
+    year: filters.year || "any",
+    sort: filters.sort || "popularity.desc",
+  };
+};
 
 export const createRoom = async (req, res, next) => {
   try {
     const { code, movies = [], filters } = req.body;
+    const roomFilters = normalizeRoomFilters(filters);
     const host = req.user._id;
     const roomCode =
       code || Math.random().toString(36).slice(2, 8).toUpperCase();
+    const roomMovies = roomFilters
+      ? await fetchMoviesFromTmdb({ ...roomFilters, limit: ROOM_MOVIE_LIMIT })
+      : movies;
 
     const room = await Room.create({
       code: roomCode,
       host,
       participants: [host],
-      movies,
-      filters,
+      movies: roomMovies,
+      filters: roomFilters,
       status: "waiting",
       matchedMovie: null,
     });
@@ -28,6 +55,13 @@ export const createRoom = async (req, res, next) => {
       },
     });
   } catch (err) {
+    if (err.tmdbError) {
+      return res.status(err.statusCode).json({
+        message: err.message,
+        tmdbError: err.tmdbError,
+      });
+    }
+
     next(err);
   }
 };
