@@ -35,6 +35,8 @@ The backend is built with Node.js, Express, MongoDB Atlas, and JWT authenticatio
 Authentication Endpoints:
 POST /signup
 POST /signin
+POST /forgot-password
+POST /reset-password
 
 👤 User Management
 

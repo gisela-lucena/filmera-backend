@@ -1,6 +1,9 @@
 import User from "../models/users.js";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
+
+const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 
 export const createUser = async (req, res, next) => {
   try {
@@ -50,6 +53,67 @@ export const userLogin = async (req, res, next) => {
     );
 
     res.json({ token });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const requestPasswordReset = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    const response = {
+      message:
+        "Se este email estiver cadastrado, enviaremos instruções para redefinir sua senha.",
+    };
+
+    if (!user) {
+      return res.json(response);
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.passwordResetToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    user.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+
+    await user.save({ validateBeforeSave: false });
+
+    if (process.env.NODE_ENV !== "production") {
+      response.resetToken = resetToken;
+    }
+
+    return res.json(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+    const passwordResetToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      passwordResetToken,
+      passwordResetExpires: { $gt: new Date() },
+    }).select("+passwordResetToken +passwordResetExpires");
+
+    if (!user) {
+      return res.status(400).json({ message: "Token inválido ou expirado" });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    await user.save();
+
+    return res.json({ message: "Senha redefinida com sucesso" });
   } catch (err) {
     next(err);
   }
