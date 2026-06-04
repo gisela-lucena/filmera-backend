@@ -1,47 +1,137 @@
 import Room from "../models/room.js";
 import Swipe from "../models/swipe.js";
+import { fetchMoviesFromTmdb } from "../utils/tmdb.js";
+
+const ROOM_MOVIE_LIMIT = 100;
+
+const normalizeRoomFilters = (filters) => {
+  if (!filters) {
+    return filters;
+  }
+
+  const genres = Array.isArray(filters.genres)
+    ? filters.genres
+    : String(filters.genres || "")
+        .split(",")
+        .filter(Boolean)
+        .map(Number)
+        .filter(Number.isFinite);
+
+  return {
+    genres,
+    year: filters.year || "any",
+    sort: filters.sort || "popularity.desc",
+  };
+};
 
 export const createRoom = async (req, res, next) => {
   try {
-    const { code, movies, filters } = req.body;
+    const { code, movies = [], filters } = req.body;
+    const roomFilters = normalizeRoomFilters(filters);
     const host = req.user._id;
+    const roomCode =
+      code || Math.random().toString(36).slice(2, 8).toUpperCase();
+    const roomMovies = roomFilters
+      ? await fetchMoviesFromTmdb({ ...roomFilters, limit: ROOM_MOVIE_LIMIT })
+      : movies;
 
     const room = await Room.create({
-      code,
+      code: roomCode,
       host,
       participants: [host],
-      movies,
-      filters,
+      movies: roomMovies,
+      filters: roomFilters,
       status: "waiting",
       matchedMovie: null,
     });
     res.status(201).json({
       message: "Sala criada com sucesso",
-      room: { code: room.code, _id: room._id },
+      room: {
+        code: room.code,
+        _id: room._id,
+        participants: room.participants,
+        movies: room.movies,
+        status: room.status,
+      },
     });
   } catch (err) {
+    if (err.tmdbError) {
+      return res.status(err.statusCode).json({
+        message: err.message,
+        tmdbError: err.tmdbError,
+      });
+    }
+
+    next(err);
+  }
+};
+
+export const updateRoomFilters = async (req, res, next) => {
+  try {
+    const { roomCode } = req.params;
+    const { filters } = req.body;
+    const roomFilters = normalizeRoomFilters(filters);
+
+    const room = await Room.findOne({ code: roomCode });
+
+    if (!room) {
+      return res.status(404).json({ message: "Sala não encontrada" });
+    }
+
+    const roomMovies = await fetchMoviesFromTmdb({
+      ...roomFilters,
+      limit: ROOM_MOVIE_LIMIT,
+    });
+
+    room.filters = roomFilters;
+    room.movies = roomMovies;
+    room.matchedMovie = null;
+    room.status = "swiping";
+
+    await Swipe.deleteMany({ room: roomCode });
+    await room.save();
+
+    return res.json({
+      message: "Filtros atualizados com sucesso",
+      room: {
+        code: room.code,
+        _id: room._id,
+        participants: room.participants,
+        movies: room.movies,
+        filters: room.filters,
+        status: room.status,
+      },
+    });
+  } catch (err) {
+    if (err.tmdbError) {
+      return res.status(err.statusCode).json({
+        message: err.message,
+        tmdbError: err.tmdbError,
+      });
+    }
+
     next(err);
   }
 };
 
 export const joinRoom = async (req, res, next) => {
   try {
-    const { roomId } = req.params;
+    const { roomCode } = req.params;
     const userId = req.user._id;
 
-    const room = await Room.findById(roomId).orFail();
+    const room = await Room.findOne({ code: roomCode });
+    if (!room) {
+      return res.status(404).json({ message: "Sala não encontrada" });
+    }
 
     const alreadyInRoom = room.participants.some(
       (participant) => participant.toString() === userId.toString(),
     );
 
-    if (alreadyInRoom) {
-      return res.status(400).json({
-        message: "Usuário já está na sala",
-      });
+    if (!alreadyInRoom) {
+      room.participants.push(userId);
+      await room.save();
     }
-    room.participants.push(userId);
-    await room.save();
 
     return res.json({
       message: "Entrou na sala com sucesso",
@@ -49,6 +139,8 @@ export const joinRoom = async (req, res, next) => {
         _id: room._id,
         code: room.code,
         participants: room.participants,
+        movies: room.movies,
+        status: room.status,
       },
     });
   } catch (err) {
@@ -58,19 +150,19 @@ export const joinRoom = async (req, res, next) => {
 
 export async function getAvailableMovies(req, res, next) {
   try {
-    const { roomId } = req.params;
+    const { roomCode } = req.params;
     const userId = req.user._id;
 
-    const room = await Room.findById(roomId).orFail();
+    const room = await Room.findOne({ code: roomCode }).orFail();
 
-    const swipes = await Swipe.find({ room: roomId });
+    const swipes = await Swipe.find({ room: roomCode });
 
-    const moviesSwipedByCurrentUser = swipes.filter((swipe) =>
-      swipe.user.toString() === userId.toString())
+    const moviesSwipedByCurrentUser = swipes
+      .filter((swipe) => swipe.user.toString() === userId.toString())
       .map((swipe) => swipe.movieId.toString());
 
-    const dislikedMovies = swipes.filter((swipe) =>
-      swipe.liked === false)
+    const dislikedMovies = swipes
+      .filter((swipe) => swipe.liked === false)
       .map((swipe) => swipe.movieId.toString());
 
     const blockedMovieIds = new Set([
@@ -87,3 +179,88 @@ export async function getAvailableMovies(req, res, next) {
     next(err);
   }
 }
+
+export const addMovieToRoom = async (req, res, next) => {
+  try {
+    const { roomCode } = req.params;
+    const { movie } = req.body;
+
+    const room = await Room.findOne({ code: roomCode });
+
+    if (!room) {
+      return res.status(404).json({ message: "Sala não encontrada" });
+    }
+
+    const alreadyExists = room.movies.some(
+      (item) => item.tmdbId.toString() === movie.id?.toString(),
+    );
+
+    if (!alreadyExists) {
+      room.movies.push({
+        tmdbId: movie.id,
+        title: movie.title,
+        year: movie.year,
+        rating: movie.rating,
+        overview: movie.overview,
+        poster: movie.poster,
+      });
+
+      await room.save();
+    }
+
+    return res.status(201).json({
+      message: "Filme adicionado à sala",
+      room,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getRoom = async (req, res, next) => {
+  try {
+    const { roomCode } = req.params;
+
+    const room = await Room.findOne({ code: roomCode });
+
+    if (!room) {
+      return res.status(404).json({ message: "Sala não encontrada" });
+    }
+
+    return res.json({
+      room: {
+        _id: room._id,
+        code: room.code,
+        participants: room.participants,
+        movies: room.movies,
+        status: room.status,
+        matchedMovie: room.matchedMovie,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const clearMatch = async (req, res, next) => {
+  try {
+    const { roomCode } = req.params;
+    const room = await Room.findOne({ code: roomCode });
+
+    if (!room) {
+      return res.status(404).json({ message: "Sala não encontrada" });
+    }
+
+    room.matchedMovie = null;
+    room.status = "swiping";
+
+    await room.save();
+
+    return res.json({
+      message: "Match removido",
+      room,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

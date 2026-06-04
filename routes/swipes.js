@@ -6,7 +6,7 @@ const swipeRouter = Router();
 
 const validateCreateSwipe = celebrate({
   body: Joi.object().keys({
-    roomId: Joi.string().hex().length(24).required(),
+    roomCode: Joi.string().required(),
     movieId: Joi.number().required(),
     liked: Joi.boolean().required(),
   }),

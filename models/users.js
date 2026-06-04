@@ -21,6 +21,14 @@ const userSchema = new mongoose.Schema({
     minLength: 8,
     select: false,
   },
+  passwordResetToken: {
+    type: String,
+    select: false,
+  },
+  passwordResetExpires: {
+    type: Date,
+    select: false,
+  },
 });
 
 const User = mongoose.model("User", userSchema);

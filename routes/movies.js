@@ -19,19 +19,26 @@ const validateGetMovies = celebrate({
         "vote_average.asc",
         "release_date.desc",
         "release_date.asc",
+        "primary_release_date.desc",
+        "primary_release_date.asc",
       )
       .optional(),
   }),
 });
 
-const validateRoomId = celebrate({
+const validateRoomCode = celebrate({
   params: Joi.object().keys({
-    roomId: Joi.string().hex().length(24).required(),
+    roomCode: Joi.string().min(4).max(20).required(),
   }),
 });
 
 movieRouter.get("/", validateGetMovies, getMovies);
 movieRouter.get("/popular", getMovies);
-movieRouter.get("/:roomId/available-movies", auth, validateRoomId, getAvailableMovies);
+movieRouter.get(
+  "/:roomCode/available-movies",
+  auth,
+  validateRoomCode,
+  getAvailableMovies,
+);
 
 export default movieRouter;
