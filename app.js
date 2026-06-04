@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://filmera-frontend.e.app",
+  "https://filmera-frontend.vercel.app",
   "https://filmera.us",
 ];
 
