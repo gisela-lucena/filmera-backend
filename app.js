@@ -15,8 +15,6 @@ import {
 } from "./controllers/users.js";
 import { celebrate, Joi, errors } from "celebrate";
 
-console.log("Ambiente:", process.env.NODE_ENV);
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -77,7 +75,6 @@ app.use("/movies", moviesRouter);
 
 app.use(errors());
 app.use((err, req, res, next) => {
-  console.error(err);
   res.status(err.statusCode || 500).json({
     message: err.statusCode ? err.message : "Internal server error",
   });
@@ -86,10 +83,7 @@ app.use((err, req, res, next) => {
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
-    console.log("Conectado ao MongoDB");
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    app.listen(PORT);
   })
   .catch((err) => {
     console.error("Erro ao conectar ao MongoDB", err);
