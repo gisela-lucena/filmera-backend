@@ -2,6 +2,7 @@ import User from "../models/users.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import { sendPasswordResetEmail } from "../utils/email.js";
 
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 
@@ -79,9 +80,13 @@ export const requestPasswordReset = async (req, res, next) => {
     user.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
 
     await user.save({ validateBeforeSave: false });
-
-    if (process.env.NODE_ENV !== "production") {
-      response.resetToken = resetToken;
+    try {
+      await sendPasswordResetEmail({ email: user.email, resetToken });
+    } catch (err) {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      throw err;
     }
 
     return res.json(response);
