@@ -83,6 +83,12 @@ export const requestPasswordReset = async (req, res, next) => {
     try {
       await sendPasswordResetEmail({ email: user.email, resetToken });
     } catch (err) {
+      console.error("Password reset email failed", {
+        code: err.code,
+        command: err.command,
+        responseCode: err.responseCode,
+        message: err.message,
+      });
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save({ validateBeforeSave: false });

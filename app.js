@@ -76,6 +76,12 @@ app.use("/rooms", auth, roomRouter);
 app.use("/movies", moviesRouter);
 
 app.use(errors());
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.statusCode || 500).json({
+    message: err.statusCode ? err.message : "Internal server error",
+  });
+});
 
 mongoose
   .connect(process.env.MONGODB_URI)
