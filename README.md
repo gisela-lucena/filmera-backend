@@ -144,6 +144,12 @@ Utilities
 - dotenv
 - CORS
 
+Password Reset Email
+
+RESEND_API_KEY
+SMTP_FROM
+FRONTEND_URL
+
 External API
 
 - TMDB API
