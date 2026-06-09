@@ -74,6 +74,23 @@ POST /room
 POST /room/:roomCode/join
 GET /room/:roomCode/movies
 
+### Real-time room updates
+
+Authenticated room participants can subscribe to:
+
+```text
+ws://localhost:3000/rooms/:roomCode/ws?token=:jwt
+```
+
+Use `wss://` in production. The server sends JSON events with these types:
+
+- `room.updated`: initial room state and participant/movie/filter updates
+- `match.created`: a movie was liked by every room participant
+- `match.cleared`: the room resumed swiping after a match
+
+Every event includes the latest `room` snapshot. `match.created` also includes
+the matched movie in `match`.
+
 🍿 Swipe System Foundation
 
 Swipe functionality structure added for future movie matching logic.

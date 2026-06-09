@@ -1,4 +1,5 @@
 import express from "express";
+import { createServer } from "node:http";
 import mongoose from "mongoose";
 import "dotenv/config";
 import swipeRouter from "./routes/swipes.js";
@@ -14,8 +15,10 @@ import {
   userLogin,
 } from "./controllers/users.js";
 import { celebrate, Joi, errors } from "celebrate";
+import { setupWebSocketServer } from "./utils/websocket.js";
 
 const app = express();
+const server = createServer(app);
 const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = [
@@ -83,7 +86,8 @@ app.use((err, req, res, next) => {
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
-    app.listen(PORT);
+    setupWebSocketServer(server);
+    server.listen(PORT);
   })
   .catch((err) => {
     console.error("Erro ao conectar ao MongoDB", err);
@@ -91,3 +95,4 @@ mongoose
   });
 
 export default app;
+export { server };

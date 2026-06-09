@@ -1,6 +1,7 @@
 import Room from "../models/room.js";
 import Swipe from "../models/swipe.js";
 import { fetchMoviesFromTmdb } from "../utils/tmdb.js";
+import { broadcastRoomEvent } from "../utils/websocket.js";
 
 const ROOM_MOVIE_LIMIT = 100;
 
@@ -90,6 +91,7 @@ export const updateRoomFilters = async (req, res, next) => {
 
     await Swipe.deleteMany({ room: roomCode });
     await room.save();
+    broadcastRoomEvent(room.code, "room.updated", room);
 
     return res.json({
       message: "Filtros atualizados com sucesso",
@@ -131,6 +133,7 @@ export const joinRoom = async (req, res, next) => {
     if (!alreadyInRoom) {
       room.participants.push(userId);
       await room.save();
+      broadcastRoomEvent(room.code, "room.updated", room);
     }
 
     return res.json({
@@ -206,6 +209,7 @@ export const addMovieToRoom = async (req, res, next) => {
       });
 
       await room.save();
+      broadcastRoomEvent(room.code, "room.updated", room);
     }
 
     return res.status(201).json({
@@ -255,6 +259,7 @@ export const clearMatch = async (req, res, next) => {
     room.status = "swiping";
 
     await room.save();
+    broadcastRoomEvent(room.code, "match.cleared", room);
 
     return res.json({
       message: "Match removido",
