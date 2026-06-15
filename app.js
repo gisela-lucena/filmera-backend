@@ -6,6 +6,7 @@ import swipeRouter from "./routes/swipes.js";
 import userRouter from "./routes/users.js";
 import roomRouter from "./routes/rooms.js";
 import moviesRouter from "./routes/movies.js";
+import leadsRouter from "./routes/leads.js";
 import auth from "./middlewares/auth.js";
 import cors from "cors";
 import {
@@ -71,6 +72,7 @@ app.post(
   requestPasswordReset,
 );
 app.post("/reset-password", validateResetPasswordRequest, resetPassword);
+app.use("/leads", leadsRouter);
 app.use("/swipes", auth, swipeRouter);
 app.use("/users", auth, userRouter);
 app.use("/rooms", auth, roomRouter);
