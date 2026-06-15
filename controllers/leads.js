@@ -12,7 +12,9 @@ export const createLead = async (req, res, next) => {
     return res.status(201).json(SUCCESS_RESPONSE);
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(200).json(SUCCESS_RESPONSE);
+      return res.status(409).json({
+        message: "Email already registered.",
+      });
     }
 
     return next(err);
