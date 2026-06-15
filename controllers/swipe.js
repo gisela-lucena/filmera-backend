@@ -1,5 +1,6 @@
 import Swipe from "../models/swipe.js";
 import Room from "../models/room.js";
+import { broadcastRoomEvent } from "../utils/websocket.js";
 
 export async function createSwipe(req, res, next) {
   try {
@@ -40,6 +41,9 @@ export async function createSwipe(req, res, next) {
           room.matchedMovie = matchedMovie;
           room.status = "matched";
           await room.save();
+          broadcastRoomEvent(room.code, "match.created", room, {
+            match: matchedMovie,
+          });
         }
       }
     }

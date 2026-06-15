@@ -1,10 +1,12 @@
 import express from "express";
+import { createServer } from "node:http";
 import mongoose from "mongoose";
 import "dotenv/config";
 import swipeRouter from "./routes/swipes.js";
 import userRouter from "./routes/users.js";
 import roomRouter from "./routes/rooms.js";
 import moviesRouter from "./routes/movies.js";
+import leadsRouter from "./routes/leads.js";
 import auth from "./middlewares/auth.js";
 import cors from "cors";
 import {
@@ -14,8 +16,10 @@ import {
   userLogin,
 } from "./controllers/users.js";
 import { celebrate, Joi, errors } from "celebrate";
+import { setupWebSocketServer } from "./utils/websocket.js";
 
 const app = express();
+const server = createServer(app);
 const PORT = process.env.PORT || 3000;
 
 const allowedOrigins = [
@@ -68,6 +72,7 @@ app.post(
   requestPasswordReset,
 );
 app.post("/reset-password", validateResetPasswordRequest, resetPassword);
+app.use("/leads", leadsRouter);
 app.use("/swipes", auth, swipeRouter);
 app.use("/users", auth, userRouter);
 app.use("/rooms", auth, roomRouter);
@@ -83,7 +88,8 @@ app.use((err, req, res, next) => {
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
-    app.listen(PORT);
+    setupWebSocketServer(server);
+    server.listen(PORT);
   })
   .catch((err) => {
     console.error("Erro ao conectar ao MongoDB", err);
@@ -91,3 +97,4 @@ mongoose
   });
 
 export default app;
+export { server };
