@@ -38,6 +38,9 @@ const validateCreateRoom = celebrate({
         genres: Joi.alternatives()
           .try(Joi.array().items(Joi.number()), Joi.string().allow(""))
           .default([]),
+        providers: Joi.alternatives()
+          .try(Joi.array().items(Joi.number()), Joi.string().allow(""))
+          .default([]),
         year: Joi.alternatives()
           .try(Joi.string().valid("any"), Joi.string().length(4))
           .default("any"),
@@ -61,6 +64,9 @@ const validateCreateRoom = celebrate({
 const filtersSchema = Joi.object()
   .keys({
     genres: Joi.alternatives()
+      .try(Joi.array().items(Joi.number()), Joi.string().allow(""))
+      .default([]),
+    providers: Joi.alternatives()
       .try(Joi.array().items(Joi.number()), Joi.string().allow(""))
       .default([]),
     year: Joi.alternatives()

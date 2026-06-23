@@ -63,6 +63,10 @@ const roomSchema = new mongoose.Schema(
         type: [Number],
         default: [],
       },
+      providers: {
+        type: [Number],
+        default: [],
+      },
       year: {
         type: String,
         default: "any",

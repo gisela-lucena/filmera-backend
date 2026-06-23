@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { getMovies, getAvailableMovies } from "../controllers/movies.js";
+import {
+  getMovieCredits,
+  getMovies,
+  getAvailableMovies,
+  getMovieWatchProviders,
+} from "../controllers/movies.js";
 import { celebrate, Joi } from "celebrate";
 import auth from "../middlewares/auth.js";
 
@@ -23,6 +28,18 @@ const validateGetMovies = celebrate({
         "primary_release_date.asc",
       )
       .optional(),
+    providers: Joi.string()
+      .pattern(/^\d+(,\d+)*$/)
+      .optional(),
+  }),
+});
+
+const validateMovieId = celebrate({
+  params: Joi.object().keys({
+    movieId: Joi.number().integer().positive().required(),
+  }),
+  query: Joi.object().keys({
+    region: Joi.string().length(2).uppercase().optional(),
   }),
 });
 
@@ -34,6 +51,12 @@ const validateRoomCode = celebrate({
 
 movieRouter.get("/", validateGetMovies, getMovies);
 movieRouter.get("/popular", getMovies);
+movieRouter.get("/:movieId/credits", validateMovieId, getMovieCredits);
+movieRouter.get(
+  "/:movieId/watch-providers",
+  validateMovieId,
+  getMovieWatchProviders,
+);
 movieRouter.get(
   "/:roomCode/available-movies",
   auth,

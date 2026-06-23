@@ -17,9 +17,17 @@ const normalizeRoomFilters = (filters) => {
         .filter(Boolean)
         .map(Number)
         .filter(Number.isFinite);
+  const providers = Array.isArray(filters.providers)
+    ? filters.providers
+    : String(filters.providers || "")
+        .split(",")
+        .filter(Boolean)
+        .map(Number)
+        .filter(Number.isFinite);
 
   return {
     genres,
+    providers,
     year: filters.year || "any",
     sort: filters.sort || "popularity.desc",
   };
