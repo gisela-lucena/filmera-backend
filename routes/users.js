@@ -45,7 +45,6 @@ const validateFavoriteMovieId = celebrate({
 const userRouter = Router();
 
 userRouter.get("/", getUsers);
-userRouter.get("/me", getCurrentUser);
 userRouter.get("/me/favorites", getFavoriteMovies);
 userRouter.post("/me/favorites", validateFavoriteMovie, addFavoriteMovie);
 userRouter.delete(
@@ -53,6 +52,7 @@ userRouter.delete(
   validateFavoriteMovieId,
   removeFavoriteMovie,
 );
+userRouter.get("/me", getCurrentUser);
 userRouter.get("/:userId", validateUserId, getUserById);
 userRouter.patch("/me", validateUpdateProfile, patchUser);
 
