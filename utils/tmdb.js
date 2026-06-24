@@ -143,16 +143,26 @@ const requestTmdb = async (url) => {
 };
 
 export const fetchMovieCreditsFromTmdb = async (movieId) => {
-  const data = await requestTmdb(`${TMDB_MOVIE_URL}/${movieId}/credits`);
-  const director = data.crew?.find((member) => member.job === "Director")?.name;
-  const cast = (data.cast || [])
+  const [creditsData, releaseDatesData] = await Promise.all([
+    requestTmdb(`${TMDB_MOVIE_URL}/${movieId}/credits`),
+    requestTmdb(`${TMDB_MOVIE_URL}/${movieId}/release_dates`),
+  ]);
+  const director = creditsData.crew?.find((member) => member.job === "Director")?.name;
+  const cast = (creditsData.cast || [])
     .slice(0, 5)
     .map((member) => member.name)
     .filter(Boolean);
+  const usRelease = releaseDatesData.results?.find(
+    (release) => release.iso_3166_1 === "US",
+  );
+  const certification = usRelease?.release_dates
+    ?.find((releaseDate) => releaseDate.certification)
+    ?.certification;
 
   return {
     director: director || "Unknown",
     cast,
+    certification: certification || "Not rated",
   };
 };
 

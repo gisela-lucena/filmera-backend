@@ -173,3 +173,58 @@ export const patchUser = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getFavoriteMovies = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).orFail();
+    res.json({ favorites: user.favorites || [] });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const addFavoriteMovie = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).orFail();
+    const movie = {
+      tmdbId: req.body.tmdbId || req.body.id,
+      title: req.body.title,
+      year: req.body.year || "",
+      rating: req.body.rating || "N/A",
+      certification: req.body.certification || req.body.contentRating || "",
+      overview: req.body.overview || "",
+      poster: req.body.poster || "",
+      savedAt: new Date(),
+    };
+
+    user.favorites = [
+      movie,
+      ...(user.favorites || []).filter(
+        (favorite) => favorite.tmdbId.toString() !== movie.tmdbId.toString(),
+      ),
+    ];
+
+    await user.save();
+
+    res.status(201).json({ favorites: user.favorites });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const removeFavoriteMovie = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).orFail();
+    const { movieId } = req.params;
+
+    user.favorites = (user.favorites || []).filter(
+      (favorite) => favorite.tmdbId.toString() !== movieId.toString(),
+    );
+
+    await user.save();
+
+    res.json({ favorites: user.favorites });
+  } catch (err) {
+    next(err);
+  }
+};
